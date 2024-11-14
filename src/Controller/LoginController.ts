@@ -20,7 +20,7 @@ class LoginController implements ILoginControllerInterface {
       let result;
       if (serviceInfo?.message) {
         let accessoptions = {
-          domain: process.env.DOMAIN_URL!,
+          //domain: process.env.DOMAIN_URL!,
           maxAge: 1000 * 60 * 15, // would expire after 15 minutes
           httpOnly: true, // The cookie only accessible by the web server
           secure: true, // Set to true if your site is served via HTTPS
@@ -28,7 +28,7 @@ class LoginController implements ILoginControllerInterface {
           sameSite: "none", // Enforce strict SameSite mode
         } as any;
         let options = {
-          domain: process.env.DOMAIN_URL!,
+          //domain: process.env.DOMAIN_URL!,
           maxAge: 1000 * 60 * 60 * 24, // would expire after 15 minutes
           httpOnly: true, // The cookie only accessible by the web server
           secure: true, // Set to true if your site is served via HTTPS
