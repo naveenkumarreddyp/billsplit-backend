@@ -84,7 +84,7 @@ class LoginController implements ILoginControllerInterface {
     try {
       const serviceInfo = await this.loginService.signOut(req.userDetails);
       let result: ApiResponse;
-
+      console.log("---serviceInfo?.message---", serviceInfo?.message);
       if (serviceInfo?.message) {
         let accessoptions = {
           domain: process.env.DOMAIN_URL!,
@@ -110,6 +110,7 @@ class LoginController implements ILoginControllerInterface {
       }
       return res.send(result);
     } catch (err) {
+      console.log(err);
       const result: ApiResponse = HandleResponse.handleResponse(false, 500, "couldn't logout user", null);
       return res.send(result);
     }
