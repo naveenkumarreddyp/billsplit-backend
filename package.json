@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && rmdir /s /q dist && tsc",
+    "build": "tsc",
     "dev": "nodemon --exec ts-node server.ts",
     "start": "npm run build && node dist/server.js"
   },
