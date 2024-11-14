@@ -20,16 +20,20 @@ class LoginController implements ILoginControllerInterface {
       let result;
       if (serviceInfo?.message) {
         let accessoptions = {
+          domain: process.env.DOMAIN_URL!,
           maxAge: 1000 * 60 * 15, // would expire after 15 minutes
           httpOnly: true, // The cookie only accessible by the web server
-          secure: false, // Set to true if your site is served via HTTPS
-          sameSite: "strict", // Enforce strict SameSite mode
+          secure: true, // Set to true if your site is served via HTTPS
+          path: "/",
+          sameSite: "none", // Enforce strict SameSite mode
         } as any;
         let options = {
+          domain: process.env.DOMAIN_URL!,
           maxAge: 1000 * 60 * 60 * 24, // would expire after 15 minutes
           httpOnly: true, // The cookie only accessible by the web server
-          secure: false, // Set to true if your site is served via HTTPS
-          sameSite: "strict", // Enforce strict SameSite mode
+          secure: true, // Set to true if your site is served via HTTPS
+          path: "/",
+          sameSite: "none", // Enforce strict SameSite mode
         } as any;
 
         // Set cookie
@@ -82,8 +86,24 @@ class LoginController implements ILoginControllerInterface {
       let result: ApiResponse;
 
       if (serviceInfo?.message) {
-        res.clearCookie("access");
-        res.clearCookie("refresh");
+        let accessoptions = {
+          domain: process.env.DOMAIN_URL!,
+          maxAge: 1000 * 60 * 15, // would expire after 15 minutes
+          httpOnly: true, // The cookie only accessible by the web server
+          secure: true, // Set to true if your site is served via HTTPS
+          path: "/",
+          sameSite: "none", // Enforce strict SameSite mode
+        } as any;
+        let options = {
+          domain: process.env.DOMAIN_URL!,
+          maxAge: 1000 * 60 * 60 * 24, // would expire after 15 minutes
+          httpOnly: true, // The cookie only accessible by the web server
+          secure: true, // Set to true if your site is served via HTTPS
+          path: "/",
+          sameSite: "none", // Enforce strict SameSite mode
+        } as any;
+        res.clearCookie("access", accessoptions);
+        res.clearCookie("refresh", options);
         result = HandleResponse.handleResponse(true, 200, serviceInfo.message, null);
       } else {
         result = HandleResponse.handleResponse(false, 400, "couldn't signout user", null);
