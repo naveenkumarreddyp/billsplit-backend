@@ -43,9 +43,7 @@ class ExpenseService {
     }
 
     let expenseResult = await expenseRepository.insertList(expense);
-    let groupUpadate = await new GroupsService().updateUserBalances(
-      data?.groupId
-    );
+    let groupUpadate = await new GroupsService().updateUserBalances(data?.groupId);
 
     return expenseResult;
   }
@@ -118,11 +116,7 @@ class ExpenseService {
   }
 
   public async getHomeBarGraph(userId: string): Promise<any> {
-    // list all expenses of a group
-    // Example response, modify as needed
     let expenseRepository = new Repository(process.env.EXPENSE_INFO!);
-
-    // --------startingDate always returns the last 2 month and current month till  date -------
     let startingDate = new Date();
     let currentMonth = startingDate.getMonth();
     startingDate.setMonth(currentMonth - 2, 1);
@@ -205,56 +199,106 @@ class ExpenseService {
           ],
         },
       },
+      // {
+      //   $project: {
+      //     combined: {
+      //       $map: {
+      //         input: "$totalamountpaid",
+      //         as: "paid",
+      //         in: {
+      //           Month: "$$paid.Month",
+      //           Year: "$$paid.Year",
+      //           totalAmountPaid: "$$paid.totalAmountPaid",
+      //           totalExpenses: {
+      //             $ifNull: [
+      //               {
+      //                 $arrayElemAt: [
+      //                   {
+      //                     $map: {
+      //                       input: {
+      //                         $filter: {
+      //                           input: "$yourExpenses",
+      //                           as: "expense",
+      //                           cond: {
+      //                             $and: [
+      //                               {
+      //                                 $eq: ["$$expense.Month", "$$paid.Month"],
+      //                               },
+      //                               { $eq: ["$$expense.Year", "$$paid.Year"] },
+      //                             ],
+      //                           },
+      //                         },
+      //                       },
+      //                       as: "exp",
+      //                       in: "$$exp.totalExpenses",
+      //                     },
+      //                   },
+      //                   0,
+      //                 ],
+      //               },
+      //               0,
+      //             ],
+      //           },
+      //         },
+      //       },
+      //     },
+      //   },
+      // },
+      // {
+      //   $unwind: "$combined",
+      // },
+      // {
+      //   $replaceRoot: { newRoot: "$combined" },
+      // },
+      // {
+      //   $sort: {
+      //     Year: 1,
+      //     Month: 1,
+      //   },
+      // },
+      // {
+      //   $project: {
+      //     Month: 1,
+      //     "You Paid": "$totalAmountPaid",
+      //     "Your Expenses": "$totalExpenses",
+      //   },
+      // },
       {
         $project: {
-          combined: {
-            $map: {
-              input: "$totalamountpaid",
-              as: "paid",
-              in: {
-                Month: "$$paid.Month",
-                Year: "$$paid.Year",
-                totalAmountPaid: "$$paid.totalAmountPaid",
-                totalExpenses: {
-                  $ifNull: [
-                    {
-                      $arrayElemAt: [
-                        {
-                          $map: {
-                            input: {
-                              $filter: {
-                                input: "$yourExpenses",
-                                as: "expense",
-                                cond: {
-                                  $and: [
-                                    {
-                                      $eq: ["$$expense.Month", "$$paid.Month"],
-                                    },
-                                    { $eq: ["$$expense.Year", "$$paid.Year"] },
-                                  ],
-                                },
-                              },
-                            },
-                            as: "exp",
-                            in: "$$exp.totalExpenses",
-                          },
-                        },
-                        0,
-                      ],
-                    },
-                    0,
-                  ],
-                },
-              },
-            },
+          allMonths: {
+            $setUnion: [
+              "$totalamountpaid",
+              "$yourExpenses",
+              [
+                { Month: currentMonth - 1, Year: new Date().getFullYear() },
+                { Month: currentMonth, Year: new Date().getFullYear() },
+                { Month: currentMonth + 1, Year: new Date().getFullYear() },
+              ],
+            ],
           },
         },
       },
       {
-        $unwind: "$combined",
+        $unwind: "$allMonths",
       },
       {
-        $replaceRoot: { newRoot: "$combined" },
+        $group: {
+          _id: {
+            Month: "$allMonths.Month",
+            Year: "$allMonths.Year",
+          },
+          totalAmountPaid: { $max: "$allMonths.totalAmountPaid" },
+          totalExpenses: { $max: "$allMonths.totalExpenses" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          Month: "$_id.Month",
+          Year: "$_id.Year",
+          "You Paid": { $ifNull: ["$totalAmountPaid", 0] },
+          "Your Expenses": { $ifNull: ["$totalExpenses", 0] },
+        },
       },
       {
         $sort: {
@@ -262,22 +306,10 @@ class ExpenseService {
           Month: 1,
         },
       },
-      {
-        $project: {
-          Month: 1,
-          "You Paid": "$totalAmountPaid",
-          "Your Expenses": "$totalExpenses",
-        },
-      },
     ];
-// "totalAmountPaid": 0,
-// "totalExpenses": 0,
-// "MonthName": "September"
     let getGroupExpenses = await expenseRepository.aggregate(aggregateQuery);
     if (getGroupExpenses.length > 0) {
       const monthsRange = [currentMonth - 1, currentMonth, currentMonth + 1];
-
-      // Get months that are not present in getGroupExpenses
       const missingMonths = monthsRange
         .filter((month) => !getGroupExpenses.some((obj) => obj.Month === month))
         .map((month) => ({
@@ -286,7 +318,6 @@ class ExpenseService {
           "Your Expenses": 0,
         }));
       getGroupExpenses = [...missingMonths, ...getGroupExpenses];
-      // Map over existing expenses, format month names, and append missing months
       const result = [
         ...getGroupExpenses.map((obj) => ({
           ...obj,
