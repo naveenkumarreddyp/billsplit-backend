@@ -15,6 +15,10 @@ class FriendsController {
     try {
       // console.log(req.userDetails)
       const serviceInfo = await this.FriendsService.sendFriendRequest(req.body);
+      if (serviceInfo?.error) {
+        const result: ApiResponse = HandleResponse.handleResponse(false, 400, serviceInfo?.error, null);
+        return res.send(result);
+      }
       result = HandleResponse.handleResponse(true, 200, "friend request sucessfully", serviceInfo);
       return res.send(result);
     } catch (err) {
@@ -40,7 +44,8 @@ class FriendsController {
       console.log(req.userDetails);
       // const data: UserDTO = req.body;
 
-      const serviceInfo = await this.FriendsService.getFriendRequests(req.params.userId);
+      // const serviceInfo = await this.FriendsService.getFriendRequests(req.params.userId);
+      const serviceInfo = await this.FriendsService.getFriendRequests(req.body);
       const result: ApiResponse = HandleResponse.handleResponse(true, 200, "fetch group data successfully", serviceInfo);
       return res.send(result);
     } catch (err) {

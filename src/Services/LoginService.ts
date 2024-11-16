@@ -82,7 +82,7 @@ class LoginService implements ISignInServiceInterface {
   }
 
   public async getuserInfo(data: any): Promise<any> {
-    let friendRequestsData = await this.friendsService.getFriendRequests(data?.userId);
+    let friendRequestsData = await this.friendsService.getFriendRequestsCount(data?.userId);
     if (friendRequestsData) {
       data["FriendRequestCount"] = friendRequestsData?.length;
     }

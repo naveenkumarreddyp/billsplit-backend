@@ -14,7 +14,8 @@ class FriendsRoutes {
   private initializeRoutes(): void {
     this.router.route("/getFriends").post(this.FriendsController.getFriends.bind(this.FriendsController));
     this.router.route("/sendFriendRequest").post(this.FriendsController.SendFriendRequest.bind(this.FriendsController));
-    this.router.route("/getFriendRequests/:userId").get(this.FriendsController.getFriendRequests.bind(this.FriendsController));
+    // this.router.route("/getFriendRequests/:userId").get(this.FriendsController.getFriendRequests.bind(this.FriendsController));
+    this.router.route("/getFriendRequests").post(this.FriendsController.getFriendRequests.bind(this.FriendsController));
     this.router.route("/updateFriendRequest").post(this.FriendsController.updateFriendRequest.bind(this.FriendsController));
     this.router.route("/searchFriends").post(this.FriendsController.searchFriends.bind(this.FriendsController));
   }
